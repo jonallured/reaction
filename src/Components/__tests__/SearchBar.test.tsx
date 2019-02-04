@@ -28,4 +28,12 @@ describe("SearchBar", () => {
     wrapper.find('input').simulate('blur')
     expect(wrapper.find(SearchSuggestions).length).toEqual(0)
   })
+
+  it("shows a suggestion to search for your query", () => {
+    const wrapper = mount(<SearchBar />)
+    wrapper.find('input').simulate('focus')
+    wrapper.find('input').simulate('change', { target: { value: 'Warh' } })
+    const suggestions = wrapper.find(SearchSuggestions)
+    expect(suggestions.text()).toEqual("Search \"Warh\"")
+  })
 })

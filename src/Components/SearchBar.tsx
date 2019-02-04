@@ -8,7 +8,8 @@ const Wrapper = styled.div``
 
 export class SearchBar extends React.Component {
   state = {
-    inputHasFocus: false
+    inputHasFocus: false,
+    query: ""
   }
 
   handleFocus = () => {
@@ -19,13 +20,18 @@ export class SearchBar extends React.Component {
     this.setState({inputHasFocus: false})
   }
 
+  handleChange = (e) => {
+    const query = e.target.value
+    this.setState({query})
+  }
+
   render() {
     const showSuggestions = this.state.inputHasFocus
 
     return (
       <Wrapper>
-        <Input onFocus={this.handleFocus} onBlur={this.handleBlur} />
-        {showSuggestions && <SearchSuggestions />}
+        <Input onChange={this.handleChange} onFocus={this.handleFocus} onBlur={this.handleBlur} />
+        {showSuggestions && <SearchSuggestions query={this.state.query} />}
       </Wrapper>
     )
   }

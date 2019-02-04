@@ -5,5 +5,5 @@ import { SearchSuggestions } from "../SearchSuggestions"
 
 storiesOf("Components/SearchSuggestions", module)
   .add("SearchSuggestions", () => (
-    <SearchSuggestions />
+    <SearchSuggestions query="asdf" />
   ))

@@ -153,7 +153,7 @@ class Filter extends Component<Props> {
               my={0.3}
               selected={currentFilter === count.id}
               value={count.id}
-              onSelect={this.handleCategorySelect({ category, count }).bind(this)}
+              onSelect={this.omghaha(category, count)}
               key={index}
               label={count.name}
             />
@@ -163,18 +163,35 @@ class Filter extends Component<Props> {
     )
   }
 
-  handleCategorySelect({category, count}) {
-    return ({selected}) => {
-      this.props.tracking.trackEvent({
-        changed_medium: count.id
-      })
-      if (selected) {
-        return this.props.filterState.setFilter(category, count.id, this.props.mediator)
-      } else {
-        return this.props.filterState.unsetFilter(category, this.props.mediator)
-      }
+  @track((_props, _state, [_selected, _category, count]) => {
+    return { changed_medium: count.id }
+  })
+  handleSomething(selected, category, count) {
+    if (selected) {
+      return this.props.filterState.setFilter(category, count.id, this.props.mediator)
+    } else {
+      return this.props.filterState.unsetFilter(category, this.props.mediator)
     }
   }
+
+  omghaha = (category, count) => {
+    return ({selected}) => {
+      this.handleSomething(selected, category, count)
+    }
+  }
+
+  // handleCategorySelect({category, count}) {
+  //   return ({selected}) => {
+  //     this.props.tracking.trackEvent({
+  //       changed_medium: count.id
+  //     })
+  //     if (selected) {
+  //       return this.props.filterState.setFilter(category, count.id, this.props.mediator)
+  //     } else {
+  //       return this.props.filterState.unsetFilter(category, this.props.mediator)
+  //     }
+  //   }
+  // }
 
   renderWaysToBuy(filterState, mediator, counts) {
     const ways = [

@@ -12,6 +12,10 @@ import { ArtworkFilterRefetchContainer as ArtworkFilter } from "./ArtworkFilterR
 import { MobileActionSheet } from "./MobileActionSheet"
 import { PriceRangeFilter } from "./PriceRangeFilter"
 
+import { track } from "Artsy/Analytics"
+import * as Schema from "Artsy/Analytics/Schema"
+import { Mediator } from "Artsy/SystemContext"
+
 import {
   Box,
   Button,
@@ -32,8 +36,11 @@ interface Props {
   artist: ArtworkFilter_artist
   hideTopBorder?: boolean
   filterState?: FilterState
+  user?: User
+  mediator?: Mediator
 }
 
+@track()
 class Filter extends Component<Props> {
   static defaultProps = {
     hideTopBorder: false,
@@ -146,13 +153,7 @@ class Filter extends Component<Props> {
               my={0.3}
               selected={currentFilter === count.id}
               value={count.id}
-              onSelect={({ selected }) => {
-                if (selected) {
-                  return filterState.setFilter(category, count.id, mediator)
-                } else {
-                  return filterState.unsetFilter(category, mediator)
-                }
-              }}
+              onSelect={this.handleCategorySelect({ category, count }).bind(this)}
               key={index}
               label={count.name}
             />
@@ -160,6 +161,19 @@ class Filter extends Component<Props> {
         })}
       </Flex>
     )
+  }
+
+  handleCategorySelect({category, count}) {
+    return ({selected}) => {
+      this.props.tracking.trackEvent({
+        changed_medium: count.id
+      })
+      if (selected) {
+        return this.props.filterState.setFilter(category, count.id, this.props.mediator)
+      } else {
+        return this.props.filterState.unsetFilter(category, this.props.mediator)
+      }
+    }
   }
 
   renderWaysToBuy(filterState, mediator, counts) {
@@ -298,79 +312,78 @@ class Filter extends Component<Props> {
   }
 
   render() {
-    const { filterState } = this.props
-    return (
-      <ContextConsumer>
-        {({ user, mediator }) => {
-          const hideTopBorder = this.props.hideTopBorder
+    // todo: remove this line by accessing these things from props directly
+    const { filterState, user, mediator } = this.props
+    const hideTopBorder = this.props.hideTopBorder
 
-          const Filters = () =>
-            this.renderFilters({
-              user,
+    const Filters = () =>
+      this.renderFilters({
+        user,
+        filterState,
+        mediator,
+        hideTopBorder,
+      })
+
+      return (
+        <Flex flexDirection={["column", "row"]}>
+          <Box width={["100%", "25%"]} mr={2}>
+            <Media at="xs">
+              {filterState.state.showActionSheet && (
+                <MobileActionSheet
+                  onClose={() => filterState.showActionSheet(false)}
+                >
+                  <Filters />
+                </MobileActionSheet>
+              )}
+            </Media>
+            <Media greaterThan="xs">
+              <Filters />
+            </Media>
+          </Box>
+          {/* Main Artwork Grid */}
+          <Box width={["100%", "75%"]}>
+            <Media greaterThan="xs">
+              {!hideTopBorder && <Separator mb={2} mt={-1} />}
+            </Media>
+
+            {this.renderSelect({
               filterState,
               mediator,
-              hideTopBorder,
-            })
+            })}
 
-          return (
-            <Flex flexDirection={["column", "row"]}>
-              <Box width={["100%", "25%"]} mr={2}>
-                <Media at="xs">
-                  {filterState.state.showActionSheet && (
-                    <MobileActionSheet
-                      onClose={() => filterState.showActionSheet(false)}
-                    >
-                      <Filters />
-                    </MobileActionSheet>
-                  )}
-                </Media>
-                <Media greaterThan="xs">
-                  <Filters />
-                </Media>
-              </Box>
-              {/* Main Artwork Grid */}
-              <Box width={["100%", "75%"]}>
-                <Media greaterThan="xs">
-                  {!hideTopBorder && <Separator mb={2} mt={-1} />}
-                </Media>
+            <Spacer mb={2} />
 
-                {this.renderSelect({
-                  filterState,
-                  mediator,
-                })}
-
-                <Spacer mb={2} />
-
-                {this.showZeroState ? (
-                  this.renderZeroState({
-                    user,
-                    mediator,
-                  })
-                ) : (
-                  <ArtworkFilter
-                    artist={this.props.artist}
-                    artistID={this.props.artist.id}
-                    columnCount={[2, 2, 2, 3]}
-                    filters={filterState.state}
-                  />
-                )}
-              </Box>
-            </Flex>
-          )
-        }}
-      </ContextConsumer>
-    )
+            {this.showZeroState ? (
+              this.renderZeroState({
+                user,
+                mediator,
+              })
+            ) : (
+              <ArtworkFilter
+                artist={this.props.artist}
+                artistID={this.props.artist.id}
+                columnCount={[2, 2, 2, 3]}
+                filters={filterState.state}
+              />
+            )}
+          </Box>
+        </Flex>
+      )
   }
 }
 
 export const ArtworkFilterFragmentContainer = createFragmentContainer(
   (props: Props) => {
     return (
-      <Subscribe to={[FilterState]}>
-        {(filters: FilterState) => {
-          return <Filter filterState={filters} {...props} />
-        }}
-      </Subscribe>
+      <ContextConsumer>
+        {({ user, mediator }) => (
+          <Subscribe to={[FilterState]}>
+            {(filters: FilterState) => {
+              return <Filter user={user} mediator={mediator} filterState={filters} {...props} />
+            }}
+          </Subscribe>
+        )}
+      </ContextConsumer>
     )
   },
   graphql`

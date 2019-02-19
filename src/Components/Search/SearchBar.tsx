@@ -48,6 +48,51 @@ interface State {
   focused: boolean
 }
 
+const AutosuggestWrapper = styled(Box)`
+  background: red;
+  position: relative;
+`
+
+const SuggestionListWrapper = styled(Box)`
+  background-color: green;
+  position: absolute;
+  left: 0;
+  right: 0;
+`
+
+const PreviewListWrapper = styled(Box)`
+  background-color: blue;
+  position: absolute;
+  left: 100%;
+`
+
+const SuggestionContainer = ({ children, containerProps, focused, query, preview }) => {
+  let firstItem = null
+  if (query) {
+    firstItem = <Box>Search "{query}"</Box>
+  } else if (focused) {
+    firstItem = <Box>{PLACEHOLDER}</Box>
+  }
+
+  const showFirstItem = firstItem !== null
+
+  return (
+    <AutosuggestWrapper {...containerProps}>
+      <SuggestionListWrapper>
+        <Flex flexDirection="column">
+          {showFirstItem && (
+            <Box mt={3} pl={3}>
+              {firstItem}
+            </Box>
+          )}
+          {children}
+        </Flex>
+      </SuggestionListWrapper>
+      <PreviewListWrapper>{preview}</PreviewListWrapper>
+    </AutosuggestWrapper>
+  )
+}
+
 export class SearchBar extends Component<Props, State> {
   public input: HTMLInputElement
 
@@ -136,27 +181,15 @@ export class SearchBar extends Component<Props, State> {
   renderSuggestionsContainer = ({ containerProps, children, query }) => {
     const { focused } = this.state
 
-    let firstItem = null
-    if (query) {
-      firstItem = <Box>Search "{query}"</Box>
-    } else if (focused) {
-      firstItem = <Box>{PLACEHOLDER}</Box>
+    const props = {
+      children,
+      containerProps,
+      focused,
+      query,
+      preview: this.renderPreview()
     }
-    return (
-      <Box {...containerProps}>
-        <Flex flexDirection={["column", "row"]}>
-          <Box width={["100%", "50%"]}>
-            <Flex flexDirection="column">
-              <Box mt={3} pl={3}>
-                {firstItem}
-              </Box>
-              {children}
-            </Flex>
-          </Box>
-          <Box width={["100%", "50%"]}>{this.renderPreview()}</Box>
-        </Flex>
-      </Box>
-    )
+
+    return <SuggestionContainer {...props} />
   }
 
   renderSuggestion = (

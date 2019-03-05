@@ -1,4 +1,4 @@
-import { Box } from "@artsy/palette"
+import { Box, Flex } from "@artsy/palette"
 import { SearchBarState } from "Components/Search/state"
 import React from "react"
 import { Subscribe } from "unstated"
@@ -25,17 +25,21 @@ class SearchPreview extends React.Component<SearchPreviewProps> {
   render() {
     const { entityType, ...rest } = this.props
     const Preview = previewComponents[entityType] || previewComponents.default
+    const handleMouseOver = this.props.searchState.enterPreviewWithoutSelection
+    const handleMouseOut = this.props.searchState.leavePreviewIfNoSelection
 
     return (
       <Media greaterThan="xs">
-        <Box
-          onMouseOver={() =>
-            this.props.searchState.enterPreviewWithoutSelection()
-          }
-          onMouseOut={() => this.props.searchState.leavePreviewIfNoSelection()}
+        <Flex
+          alignItems="center"
+          flexDirection="column"
+          height="100%"
+          justifyContent="center"
+          onMouseOut={handleMouseOut}
+          onMouseOver={handleMouseOver}
         >
           <Preview {...rest} />
-        </Box>
+        </Flex>
       </Media>
     )
   }

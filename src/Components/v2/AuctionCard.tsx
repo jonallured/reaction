@@ -16,8 +16,11 @@ import { createFragmentContainer, graphql } from "react-relay"
 import { get } from "Utils/get"
 import { Media } from "Utils/Responsive"
 
+const timeFormat = "MMM D, h:mm A z"
 const zone = time => {
-  return moment(time, "YYYY-MM-DD").tz("America/New_York")
+  return moment(time, "YYYY-MM-DD")
+    .tz("America/New_York")
+    .format(timeFormat)
 }
 
 export const upcomingLabel = (
@@ -28,20 +31,16 @@ export const upcomingLabel = (
   isLiveOpen,
   isPreview
 ) => {
-  const timeFormat = "MMM D, h:mm A z"
-
   if (isPreview) {
-    return `Auction opens ${zone(startAt).format(timeFormat)}`
+    return `Auction opens ${zone(startAt)}`
   } else if (isClosed) {
     return "Auction closed"
   } else if (liveStartAt && !isLiveOpen) {
-    return `Auction opens for live bidding ${zone(liveStartAt).format(
-      timeFormat
-    )}`
+    return `Auction opens for live bidding ${zone(liveStartAt)}`
   } else if (liveStartAt) {
     return "Auction open for live bidding"
   } else {
-    return `Auction closes ${zone(endAt).format(timeFormat)}`
+    return `Auction closes ${zone(endAt)}`
   }
 }
 

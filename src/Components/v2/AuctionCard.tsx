@@ -20,7 +20,7 @@ const zone = time => {
   return moment(time, "YYYY-MM-DD").tz("America/New_York")
 }
 
-const upcomingLabel = (
+export const upcomingLabel = (
   startAt,
   endAt,
   liveStartAt,

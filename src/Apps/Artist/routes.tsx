@@ -63,6 +63,7 @@ const AuctionResultsRoute = loadable(() => import("./Routes/AuctionResults"))
 const CVRoute = loadable(() => import("./Routes/CV"))
 const ArticlesRoute = loadable(() => import("./Routes/Articles"))
 const ShowsRoute = loadable(() => import("./Routes/Shows"))
+const ConsignRoute = loadable(() => import("./Routes/Consign/ConsignRoute"))
 
 // Artist pages tend to load almost instantly, so just preload it up front
 if (typeof window !== "undefined") {
@@ -82,6 +83,7 @@ export const routes: RouteConfig[] = [
     query: graphql`
       query routes_ArtistTopLevelQuery($artistID: String!) @raw_response_type {
         artist(id: $artistID) @principalField {
+          id
           ...ArtistApp_artist
           ...routes_Artist @relay(mask: false)
         }
@@ -226,6 +228,20 @@ export const routes: RouteConfig[] = [
       },
 
       // Routes not in tabs
+      {
+        path: "consign",
+        getComponent: () => ConsignRoute,
+        prepare: () => {
+          ConsignRoute.preload()
+        },
+        query: graphql`
+          query routes_ConsignRouteQuery($artistID: String!) {
+            artist(id: $artistID) {
+              ...ConsignRoute_artist
+            }
+          }
+        `
+      },
       {
         path: "cv",
         getComponent: () => CVRoute,
